@@ -44,6 +44,7 @@ const getFilings = () => {
                         
                         //If link is not in database, analyze, send tweet.
                         try{
+                            console.log("Testing")
                             await axios.get(`http://localhost:${process.env.PORT}/getFilingById?urlId=${urlId}`)
                             console.log("Found")
                         }catch(e){
