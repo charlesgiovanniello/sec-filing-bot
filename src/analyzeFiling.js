@@ -1,6 +1,21 @@
 const convert = require('xml-js');
 const axios = require("axios")
 
+//Un-reverse name, properly case it, remove extra commas
+const normalizeName = (s) =>{
+    filerNamePieces = s.split(" ")
+    s = s.replace(filerNamePieces[0],"")
+    s = (s + " " +filerNamePieces[0]).trim()
+    s=s.toLowerCase()
+    let returnMe = ""
+    let arr=s.split(" ")
+    arr.forEach(str=> {
+        returnMe += str.charAt(0).toUpperCase() + str.slice(1) + " "
+    })
+    returnMe = returnMe.replace(',','').trim()
+    return(returnMe)
+}
+
 const analyzeFiling = (link) =>{
     return new Promise(async (resolve) =>{
         let filerName
@@ -11,17 +26,19 @@ const analyzeFiling = (link) =>{
         numTransactions=0
         let sumOfPricePerShare = 0
         let averagePricePerShare = 0
+        let type
+        let transactionDate
 
         try{
             const xml = await axios.get(link)
             const result = convert.xml2json(xml.data, {compact: true, spaces: 4})
             const json = JSON.parse(result)
-            filerName = json.ownershipDocument.reportingOwner.reportingOwnerId.rptOwnerName._text
-            //filerName = filerName.split(" ")[1] + " " + filerName.split(" ")[0]
+            filerName = normalizeName(json.ownershipDocument.reportingOwner.reportingOwnerId.rptOwnerName._text)
+
             try{
                 filerTitle = json.ownershipDocument.reportingOwner.reportingOwnerRelationship.officerTitle._text
             }catch(e){
-                filerTitle = "executive figure"
+                filerTitle = "business executive"
             }
             filerCompany = json.ownershipDocument.issuer.issuerName._text
             filerTicker = json.ownershipDocument.issuer.issuerTradingSymbol._text
@@ -29,11 +46,12 @@ const analyzeFiling = (link) =>{
             if(!(transactionsArray instanceof Array)){
                 transactionsArray = [transactionsArray]
             }
+            transactionDate = transactionsArray[0].transactionDate.value._text
             //parse throught the table of each nonDerivativeTransaction object. Looks for S's
             for(let i = 0; i< transactionsArray.length;i++){
-                let type = transactionsArray[i].transactionCoding.transactionCode._text
+                type = transactionsArray[i].transactionCoding.transactionCode._text
                 //console.log(type)
-                if(type == "S"){
+                if(type == "S" || type == "P"){
                     shares += parseInt(transactionsArray[i].transactionAmounts.transactionShares.value._text)
                     sumOfPricePerShare += parseInt(transactionsArray[i].transactionAmounts.transactionPricePerShare.value._text)
                     numTransactions++
@@ -44,9 +62,8 @@ const analyzeFiling = (link) =>{
             console.log("An error was encountered analyzing this file",e)
             resolve("")
         }
-        console.log("Num transactinos",numTransactions)
         if(numTransactions > 0){
-            resolve(`JUST FILED: ${filerName}, ${filerTitle} of ${filerCompany} has sold ${shares.toLocaleString() } shares of the company at an average price of $${averagePricePerShare} per share for a total of $${(shares*averagePricePerShare).toLocaleString()}. \n\n#${filerTicker}`)
+            resolve(`JUST FILED: ${filerName}, ${filerTitle} of ${filerCompany} has sold ${shares.toLocaleString()} shares of the company at an average price of $${averagePricePerShare} per share for a total of $${(shares*averagePricePerShare).toLocaleString()}. \n\n$${filerTicker} `)
         }
         else{
             resolve("")

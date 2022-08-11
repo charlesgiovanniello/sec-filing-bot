@@ -6,6 +6,7 @@ const convert = require('xml-js');
 const {analyzeFiling} = require('./analyzeFiling')
 const {getFileName} = require('./getFileName')
 const cron = require('node-cron');
+const {sendTweet} = require('./twitter')
 
 const app = express()
 app.use(express.json())
@@ -44,10 +45,11 @@ const getFilings = (company) => {
                             console.log("Found")
                         }catch(e){
                             console.log("Not Found")
-                            const tweet = await analyzeFiling(link)
+                            let tweet = await analyzeFiling(link)
                             if(tweet.length > 0){
-                                //sendtweet ...
-                                console.log(`${tweet} #stocks #investing \n\nSource: ${entries[i].link._attributes.href}`)
+                                tweet = `${tweet}#stocks #investing \n\nSource: ${entries[i].link._attributes.href}`
+                                sendTweet(tweet)
+                                console.log(tweet)
                             }
                             await axios.post(`http://localhost:${process.env.PORT}/addFiling?url=${link}`)
                         }
@@ -61,13 +63,13 @@ const getFilings = (company) => {
         })
     })
 }
-const companies = ["tesla","amazon","cloudflare","apple","microsoft","meta","exxon","procter","salesforce"]
-//const companies = ["salesforce"]
+const companies = ["tesla","amazon","cloudflare","apple","microsoft","meta","exxon","procter","salesforce","pfizer","moderna","American Assets Trust"]
+//const companies = ["American Assets Trust"]
 
-cron.schedule('*/5 * * * *', async () => {
+cron.schedule('*/10 * * * *', async () => {
     for(let i=0;i<companies.length;i++){
         await getFilings(companies[i])
-        await sleep(5000)
+        await sleep(4000)
     }
 });
 
