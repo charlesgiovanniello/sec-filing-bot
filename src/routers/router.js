@@ -1,5 +1,6 @@
 const express = require('express')
 const SecFiling = require('../models/secFiling')
+const path = require('path');
 const router = new express.Router
 
 router.post('/addFiling', async (req,res) =>{
@@ -12,14 +13,18 @@ router.post('/addFiling', async (req,res) =>{
     }
 })
 
-router.get('/getFilingByUrl', async (req,res)=>{
-    const url = req.query
-    const filing = await SecFiling.find(url)
+router.get('/getFilingById', async (req,res)=>{
+    const urlId = req.query
+    const filing = await SecFiling.find(urlId)
     if(filing.length > 0){
         res.status(200).send(filing)
     }
     res.status(404).send()
 
+})
+
+router.get('/', async (req,res)=>{
+    res.sendFile(path.join(__dirname+'../../public/index.html'));
 })
 
 module.exports = router

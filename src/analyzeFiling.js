@@ -1,5 +1,6 @@
 const convert = require('xml-js');
 const axios = require("axios")
+const thresholdTransactionAmount = 1000000
 
 //Un-reverse name, properly case it, remove extra commas
 const normalizeName = (s) =>{
@@ -37,6 +38,9 @@ const analyzeFiling = (link) =>{
 
             try{
                 filerTitle = json.ownershipDocument.reportingOwner.reportingOwnerRelationship.officerTitle._text
+                if(filerTitle === undefined){
+                    filerTitle = "business executive"
+                }
             }catch(e){
                 filerTitle = "business executive"
             }
@@ -57,13 +61,13 @@ const analyzeFiling = (link) =>{
                     numTransactions++
                 }
             }
-            averagePricePerShare = sumOfPricePerShare / numTransactions
+            averagePricePerShare = (sumOfPricePerShare / numTransactions).toFixed(2);
         }catch(e){
             console.log("An error was encountered analyzing this file",e)
             resolve("")
         }
-        if(numTransactions > 0){
-            resolve(`JUST FILED: ${filerName}, ${filerTitle} of ${filerCompany} has sold ${shares.toLocaleString()} shares of the company at an average price of $${averagePricePerShare} per share for a total of $${(shares*averagePricePerShare).toLocaleString()}. \n\n$${filerTicker} `)
+        if(numTransactions > 0 && (shares*averagePricePerShare) > thresholdTransactionAmount){
+            resolve(`JUST FILED: ${filerName}, (${filerTitle}) of ${filerCompany} sold ${shares.toLocaleString()} shares of the company at an average price of $${averagePricePerShare} per share for a total of $${(shares*averagePricePerShare).toLocaleString()}.\n\nDate: ${transactionDate} \n\n$${filerTicker} `)
         }
         else{
             resolve("")

@@ -20,6 +20,8 @@
     "mongoose": "^6.5.1",
     "node-cron": "^3.0.1",
     "nodemon": "^2.0.18",
+    "path": "^0.12.7",
+    "tinyurl": "^1.1.7",
     "twitter-api-client": "^1.6.0",
     "uuid": "^8.3.2",
     "validator": "^13.7.0",

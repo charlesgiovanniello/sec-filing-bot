@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const secFilingSchema = new mongoose.Schema({
-    url:{
+    urlId:{
         type:String
     }
 },{timestamps:true
