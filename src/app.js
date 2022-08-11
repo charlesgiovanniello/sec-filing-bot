@@ -67,7 +67,7 @@ const getFilings = () => {
                 console.log("No recent filings for ")
             }
             resolve()
-        })
+        }).catch(err => console.log(err));
     })
 }
 getFilings()
