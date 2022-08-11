@@ -23,6 +23,7 @@ function sleep(ms) {
 const getFilings = () => {
     return new Promise((resolve)=>{
         const url = `https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=4&company=&dateb=&owner=only&start=0&count=10&output=atom`
+        console.log("Testing")
         axios.get(url)
         .then(async res=>{
             if(!res.data.includes("No recent filings")){
@@ -44,7 +45,7 @@ const getFilings = () => {
                         
                         //If link is not in database, analyze, send tweet.
                         try{
-                            console.log("Testing")
+                            
                             await axios.get(`http://localhost:${process.env.PORT}/getFilingById?urlId=${urlId}`)
                             console.log("Found")
                         }catch(e){
