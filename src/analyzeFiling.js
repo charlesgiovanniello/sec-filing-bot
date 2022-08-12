@@ -28,6 +28,7 @@ const analyzeFiling = (link) =>{
         let sumOfPricePerShare = 0
         let averagePricePerShare = 0
         let type
+        let committedType
         let transactionDate
 
         try{
@@ -54,8 +55,11 @@ const analyzeFiling = (link) =>{
             //parse throught the table of each nonDerivativeTransaction object. Looks for S's
             for(let i = 0; i< transactionsArray.length;i++){
                 type = transactionsArray[i].transactionCoding.transactionCode._text
-                //console.log(type)
-                if(type == "S" || type == "P"){
+                //committedType will determine if this will be a buy or sell report. Preventing adding sells to purchaes if in same report
+                if((type == "S" || type == "P") && !committedType){
+                    committedType = type
+                }
+                if(type === committedType){
                     shares += parseInt(transactionsArray[i].transactionAmounts.transactionShares.value._text)
                     sumOfPricePerShare += parseInt(transactionsArray[i].transactionAmounts.transactionPricePerShare.value._text)
                     numTransactions++
@@ -67,7 +71,7 @@ const analyzeFiling = (link) =>{
             resolve("")
         }
         if(numTransactions > 0 && (shares*averagePricePerShare) > thresholdTransactionAmount){
-            resolve(`JUST FILED: ${filerName}, (${filerTitle}) of ${filerCompany} sold ${shares.toLocaleString()} shares of the company at an average price of $${averagePricePerShare} per share for a total of $${(shares*averagePricePerShare).toLocaleString()}.\n\nDate: ${transactionDate} \n\n$${filerTicker} `)
+            resolve(`JUST FILED: ${filerName}, (${filerTitle}) of ${filerCompany} ${(committedType==="P")?'purchased':'sold'} ${shares.toLocaleString()} shares of the company at an average price of $${averagePricePerShare} per share for a total of $${(shares*averagePricePerShare).toLocaleString()}.\n\nDate: ${transactionDate} \n\n$${filerTicker} `)
         }
         else{
             resolve("")

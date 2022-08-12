@@ -20,6 +20,7 @@
     "mongoose": "^6.5.1",
     "node-cron": "^3.0.1",
     "nodemon": "^2.0.18",
+    "parse": "^3.4.3",
     "path": "^0.12.7",
     "tinyurl": "^1.1.7",
     "twitter-api-client": "^1.6.0",
