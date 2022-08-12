@@ -62,7 +62,7 @@ const getFilings = () => {
                             if(tweet.length > 0){
                                 let url = await TinyURL.shorten(reportUrl)
                                 tweet = `${tweet}#stocks #investing \n\nSource: ${url}`
-                                //sendTweet(tweet)
+                                sendTweet(tweet) // send tweet
                                 console.log(tweet)
                             }
                         }else{
