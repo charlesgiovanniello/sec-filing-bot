@@ -23,8 +23,11 @@ function sleep(ms) {
 const getFilings = () => {
     return new Promise((resolve)=>{
         const url = `https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=4&company=&dateb=&owner=only&start=0&count=10&output=atom`
+        const headers = {headers:{
+            'User-Agent':'Giovanniello charles.giovanniello@gmail.com',
+        }}
         console.log("Testing")
-        axios.get(url)
+        axios.get(url,headers)
         .then(async res=>{
             if(!res.data.includes("No recent filings")){
                 const result = convert.xml2json(res.data, {compact: true, spaces: 4})
