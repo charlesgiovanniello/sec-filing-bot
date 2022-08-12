@@ -14,7 +14,7 @@ app.use(express.json())
 app.use(router)
 module.exports = app
 
-//Define headers for SEC Site
+//Define headers for SEC Site (User agent)
 axios.defaults.headers = {
     'User-Agent': 'Giovanniello charles.giovanniello@gmail.com'
 }
@@ -28,59 +28,56 @@ function sleep(ms) {
 const getFilings = () => {
     return new Promise((resolve)=>{
         const url = `https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=4&company=&dateb=&owner=only&start=0&count=10&output=atom`
-        console.log("Testing")
         axios.get(url)
         .then(async res=>{
-            if(!res.data.includes("No recent filings")){
-                const result = convert.xml2json(res.data, {compact: true, spaces: 4})
-                const json = JSON.parse(result)
-                let entries = json.feed.entry
-                if(!(entries instanceof Array)){
-                    entries = [entries]
-                }
-                //console.log(entries)
-                for(let i=0; i<entries.length;i++){
-                    if(entries[i].link){
-                        let link = (entries[i].link._attributes.href).substring(0,entries[i].link._attributes.href.lastIndexOf('/'))+"/"
-                        let linkParts = link.split( '/' )
-                        let urlId = linkParts[ linkParts.length - 2 ]
-                        console.log(urlId)
-                        let fileName = await getFileName(link)
-                        link = link + fileName +".xml"
-                        
-                        //If link is not in database, analyze, send tweet.
-                        try{
-                            
-                            await axios.get(`http://localhost:${process.env.PORT}/getFilingById?urlId=${urlId}`)
-                            console.log("Found")
-                        }catch(e){
-                            console.log("Not Found")
+            const result = convert.xml2json(res.data, {compact: true, spaces: 4})
+            const json = JSON.parse(result)
+            let entries = json.feed.entry
+            if(!(entries instanceof Array)){
+                entries = [entries]
+            }
+            for (let i=0; i<entries.length;i++){
+                let reportUrl = entries[i].link._attributes.href
+                let reportTitle = entries[i].title._text
+                //Check if the entry contains a link and that it's of type Reporting (Not Issuer, this would create duplicates)
+                if(entries[i].link && reportTitle.includes('(Reporting)')){
+                    console.log(reportTitle)
+                    // link is the reports file directory, needed to get the report file name via web scrape
+                    let link = (reportUrl).substring(0,reportUrl.lastIndexOf('/'))+"/"
+                    let linkParts = link.split( '/' )
+                    let urlId = linkParts[ linkParts.length - 2 ]
+                    console.log(urlId)
+                    let fileName = await getFileName(link)
+                    link = link + fileName +".xml"
+                    
+                    //If link is not in database, analyze, send tweet.
+                    try{
+                        await axios.get(`http://localhost:${process.env.PORT}/getFilingById?urlId=${urlId}`)
+                        console.log("Found")
+                    }catch(e){
+                        console.log("Not found")
+                        if(e.response.status == 404){
+                            await axios.post(`http://localhost:${process.env.PORT}/addFiling?urlId=${urlId}`)
                             let tweet = await analyzeFiling(link)
                             if(tweet.length > 0){
-                                let url = await TinyURL.shorten(entries[i].link._attributes.href)
+                                let url = await TinyURL.shorten(reportUrl)
                                 tweet = `${tweet}#stocks #investing \n\nSource: ${url}`
-                                sendTweet(tweet)
+                                //sendTweet(tweet)
                                 console.log(tweet)
                             }
-                            await axios.post(`http://localhost:${process.env.PORT}/addFiling?urlId=${urlId}`)
+                        }else{
+                            console.log(e.response.status)
                         }
                     }
-                    await sleep(4000) //to avoid accidental DDOS
-                    
                 }
-            }else{
-                console.log("No recent filings for ")
+                await sleep(4000) //to avoid accidental DDOS
             }
             resolve()
         }).catch(err => console.log(err));
     })
 }
+
 getFilings()
 cron.schedule('*/10 * * * *', async () => {
     await getFilings()
 });
-
-// const test =  async () => {
-//     await getFilings()
-// }
-// test()
