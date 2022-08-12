@@ -8,6 +8,9 @@ axios.defaults.headers = {
 
 //Un-reverse name, properly case it, remove extra commas
 const normalizeName = (s) =>{
+    if(s.toLowerCase.includes('llc')){
+        return(s)
+    }
     filerNamePieces = s.split(" ")
     s = s.replace(filerNamePieces[0],"")
     s = (s + " " +filerNamePieces[0]).trim()
@@ -44,10 +47,10 @@ const analyzeFiling = (link) =>{
             try{
                 filerTitle = json.ownershipDocument.reportingOwner.reportingOwnerRelationship.officerTitle._text
                 if(filerTitle === undefined){
-                    filerTitle = "business executive"
+                    filerTitle = "executive / entity"
                 }
             }catch(e){
-                filerTitle = "business executive"
+                filerTitle = "executive / entity"
             }
             filerCompany = json.ownershipDocument.issuer.issuerName._text
             filerTicker = json.ownershipDocument.issuer.issuerTradingSymbol._text
