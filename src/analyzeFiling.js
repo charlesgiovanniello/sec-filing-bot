@@ -8,7 +8,7 @@ axios.defaults.headers = {
 
 //Un-reverse name, properly case it, remove extra commas
 const normalizeName = (s) =>{
-    if(s.toLowerCase.includes('llc')){
+    if(s.toLowerCase().includes('llc')){
         return(s)
     }
     filerNamePieces = s.split(" ")
