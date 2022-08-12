@@ -14,6 +14,11 @@ app.use(express.json())
 app.use(router)
 module.exports = app
 
+//Define headers for SEC Site
+axios.defaults.headers = {
+    'User-Agent': 'Giovanniello charles.giovanniello@gmail.com'
+}
+
 function sleep(ms) {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
@@ -23,11 +28,8 @@ function sleep(ms) {
 const getFilings = () => {
     return new Promise((resolve)=>{
         const url = `https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=4&company=&dateb=&owner=only&start=0&count=10&output=atom`
-        const headers = {headers:{
-            'User-Agent':'Giovanniello charles.giovanniello@gmail.com',
-        }}
         console.log("Testing")
-        axios.get(url,headers)
+        axios.get(url)
         .then(async res=>{
             if(!res.data.includes("No recent filings")){
                 const result = convert.xml2json(res.data, {compact: true, spaces: 4})

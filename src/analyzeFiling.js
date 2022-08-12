@@ -1,6 +1,10 @@
 const convert = require('xml-js');
 const axios = require("axios")
 const thresholdTransactionAmount = 1000000
+//Define headers for SEC Site
+axios.defaults.headers = {
+    'User-Agent': 'Giovanniello charles.giovanniello@gmail.com'
+}
 
 //Un-reverse name, properly case it, remove extra commas
 const normalizeName = (s) =>{
