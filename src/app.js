@@ -8,6 +8,7 @@ const {getFileName} = require('./getFileName')
 const cron = require('node-cron');
 const {sendTweet} = require('./twitter')
 const TinyURL = require('tinyurl');
+const {createNewOrder,getAlpacaAccount} = require('./alpaca')
 
 const app = express()
 app.use(express.json())
@@ -57,14 +58,25 @@ const getFilings = () => {
                     }catch(e){
                         console.log("Not found")
                         if(e.response.status == 404){
-                            await axios.post(`http://localhost:${process.env.PORT}/addFiling?urlId=${urlId}`)
-                            let tweet = await analyzeFiling(link)
-                            if(tweet.length > 0){
+                            let {committedType,
+                                shares,
+                                filerTicker,
+                                filerName,
+                                filerTitle,
+                                filerCompany,
+                                averagePricePerShare,
+                                transactionDate} = await analyzeFiling(link)
+                            if(!(committedType===undefined)){
                                 let url = await TinyURL.shorten(reportUrl)
-                                tweet = `${tweet}#stocks #investing \n\nSource: ${url}`
-                                sendTweet(tweet) // send tweet
+                                let tweet = `JUST FILED: ${filerName}, (${filerTitle}) of ${filerCompany} ${(committedType==="P")?'purchased':'sold'} ${shares.toLocaleString()} shares of the company at an average price of $${averagePricePerShare} per share for a total of $${(shares*averagePricePerShare).toLocaleString()}.\n\nDate: ${transactionDate} \n\n$${filerTicker} ` + `#stocks #investing \n\nSource: ${url}`
+                                
+                                //sendTweet(tweet) // send tweet
+                                //Send alpaca order
+                                createNewOrder(filerTicker,committedType === 'S'? 'sell':'buy')
                                 console.log(tweet)
                             }
+                            await axios.post(`http://localhost:${process.env.PORT}/addFiling?urlId=${urlId}&committedType=${committedType}&shares=${shares}&filerTicker=${filerTicker}&filerName=${filerName}&filerTitle=${filerTitle}&filerCompany=${filerCompany}&averagePricePerShare=${averagePricePerShare}&transactionDate=${transactionDate}`)
+                            
                         }else{
                             console.log(e.response.status)
                         }

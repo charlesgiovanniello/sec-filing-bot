@@ -78,7 +78,18 @@ const analyzeFiling = (link) =>{
             resolve("")
         }
         if(numTransactions > 0 && (shares*averagePricePerShare) > thresholdTransactionAmount){
-            resolve(`JUST FILED: ${filerName}, (${filerTitle}) of ${filerCompany} ${(committedType==="P")?'purchased':'sold'} ${shares.toLocaleString()} shares of the company at an average price of $${averagePricePerShare} per share for a total of $${(shares*averagePricePerShare).toLocaleString()}.\n\nDate: ${transactionDate} \n\n$${filerTicker} `)
+            let obj = {
+                committedType,
+                shares:shares,
+                filerTicker,
+                filerName,
+                filerTitle,
+                filerCompany,
+                averagePricePerShare,
+                transactionDate
+            }
+            resolve(obj)
+            //resolve(`JUST FILED: ${filerName}, (${filerTitle}) of ${filerCompany} ${(committedType==="P")?'purchased':'sold'} ${shares.toLocaleString()} shares of the company at an average price of $${averagePricePerShare} per share for a total of $${(shares*averagePricePerShare).toLocaleString()}.\n\nDate: ${transactionDate} \n\n$${filerTicker} `)
         }
         else{
             resolve("")
