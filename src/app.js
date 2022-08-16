@@ -25,6 +25,16 @@ function sleep(ms) {
     });
   }
 
+const hashtagList = ["#stocks","#trading","#finance","#insidertrading","#assets","#wallstreetbets","#wallstreet","#wealth","#generationalWealth"]
+const hashtagGenerator = ()=>{
+    var arr = [];
+    while(arr.length < 2){
+        var r = Math.floor(Math.random() * hashtagList.length - 1) + 1;
+        if(arr.indexOf(r) === -1) arr.push(r);
+    }
+    return `${hashtagList[arr[0]]} ${hashtagList[arr[1]]}`
+}
+
 const getFilings = () => {
     return new Promise((resolve)=>{
         const url = `https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=4&company=&dateb=&owner=only&start=0&count=10&output=atom`
@@ -61,8 +71,9 @@ const getFilings = () => {
                             let tweet = await analyzeFiling(link)
                             if(tweet.length > 0){
                                 let url = await TinyURL.shorten(reportUrl)
-                                tweet = `${tweet}#stocks #investing \n\nSource: ${url}`
-                                sendTweet(tweet) // send tweet
+                                let hashTags = hashtagGenerator()
+                                tweet = `${tweet} ${hashTags}\n\nSource: ${url}`
+                                //sendTweet(tweet) // send tweet
                                 console.log(tweet)
                             }
                         }else{
