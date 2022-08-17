@@ -72,7 +72,7 @@ const getFilings = () => {
                             if(tweet.length > 0){
                                 let url = await TinyURL.shorten(reportUrl)
                                 let hashTags = hashtagGenerator()
-                                tweet = `${tweet} ${hashTags}\n\nSource: ${url}`
+                                tweet = `${tweet}${hashTags}\n\nSource: ${url}`
                                 sendTweet(tweet) // send tweet
                                 console.log(tweet)
                             }
